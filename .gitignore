@@ -1,0 +1,30 @@
+# Raw datasets — provided by HackerEarth, huge (109 MB CSV exceeds GitHub's 100 MB limit).
+# The app does NOT need them at runtime; it loads the prebuilt pickles in data/.
+dataset theme 1/
+dataset theme 2/
+
+# Scratch scripts & logs (analysis, smoke tests)
+_*.py
+_*.log
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Secrets — NEVER commit API keys
+.streamlit/secrets.toml
+.env
+
+# Next.js frontend (web/)
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NOTE: data/clean.pkl and data/junctions.pkl ARE committed (needed for cloud deploy).
