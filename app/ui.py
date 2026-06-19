@@ -115,6 +115,52 @@ def get_zone_recommendations(top_n=20):
     zones = get_zones()
     return core.zone_recommendations(zones, top_n)
 
+@st.cache_data(show_spinner="Running DBSCAN clustering…")
+def get_dbscan_clusters():
+    return core.dbscan_clusters(load_data())
+
+@st.cache_data(show_spinner="Computing cluster quality metrics…")
+def get_cluster_quality():
+    return core.cluster_quality_metrics(load_data())
+
+@st.cache_data(show_spinner="Training next-day prediction models…")
+def get_nextday_forecast():
+    df = load_data()
+    trained = core.train_nextday_models(df)
+    if "error" in trained:
+        return trained
+    return core.predict_next_7days(trained, df)
+
+@st.cache_data(show_spinner="Training congestion model…")
+def get_congestion_model():
+    return core.train_congestion_model(load_data())
+
+@st.cache_data(show_spinner="Getting trained model details…")
+def get_nextday_trained():
+    """Return the raw trained model dict (for feature importance etc.)."""
+    df = load_data()
+    return core.train_nextday_models(df)
+
+@st.cache_data(show_spinner="Analysing traffic propagation…")
+def get_traffic_propagation(top_n=30):
+    """Run propagation analysis on top N zones (limited for performance)."""
+    zones = get_zones()
+    return core.traffic_propagation(zones.head(top_n))
+
+@st.cache_data(show_spinner="Building parking DNA profiles…")
+def get_parking_dna():
+    return core.parking_dna_profiles(load_data())
+
+@st.cache_data(show_spinner="Detecting emerging hotspots…")
+def get_emerging_hotspots():
+    return core.emerging_hotspot_analysis(load_data())
+
+@st.cache_data(show_spinner="Computing officer allocation…")
+def get_officer_allocation(total_officers=100, top_n=20):
+    zones = get_zones()
+    return core.officer_allocation(zones, total_officers, top_n)
+
+
 # ---------------------------------------------------------------- colour
 def impact_color(score):
     """0..100 -> [r,g,b] along blue->amber->red."""

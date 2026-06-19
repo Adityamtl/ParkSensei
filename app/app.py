@@ -133,3 +133,80 @@ for i, zr in enumerate(recs[:5]):
             ui.render_recommendation_card(top_rec)
 
 st.caption("Navigate: Hotspot Explorer / Forecast & Patrol Planner / Enforcement Actions / Repeat-Offender Intelligence")
+
+# ---------------- new feature previews (from GRIDLOCK2.0) ----------------
+st.markdown("---")
+st.subheader("Intelligence Modules")
+st.caption("Advanced analytics from GRIDLOCK2.0 Prototype integration.")
+
+p1, p2, p3, p4 = st.columns(4, gap="medium")
+
+with p1:
+    try:
+        prop = ui.get_traffic_propagation(top_n=20)
+        n_links = len(prop) if not prop.empty else 0
+        very_high = prop[prop["propagation_risk"] == "Very High"].shape[0] if not prop.empty else 0
+    except Exception:
+        n_links, very_high = 0, 0
+    st.markdown("""
+    <div class="rec-card">
+        <strong>🔗 Traffic Propagation</strong>
+        <br/><span style="color:#8A93A6;font-size:0.82rem">Hotspot proximity network</span>
+        <hr style="margin:8px 0;border-color:#1E2638"/>
+        <div style="font-size:1.3rem;font-weight:700">{} links</div>
+        <span style="color:#EF4444;font-size:0.8rem">{} very high risk</span>
+    </div>
+    """.format(n_links, very_high), unsafe_allow_html=True)
+
+with p2:
+    try:
+        dna = ui.get_parking_dna()
+        n_stations = len(dna) if not dna.empty else 0
+        top_vehicle = dna.iloc[0]["dominant_vehicle"][:12] if not dna.empty else "—"
+    except Exception:
+        n_stations, top_vehicle = 0, "—"
+    st.markdown("""
+    <div class="rec-card">
+        <strong>🧬 Parking DNA</strong>
+        <br/><span style="color:#8A93A6;font-size:0.82rem">Station behavioural profiles</span>
+        <hr style="margin:8px 0;border-color:#1E2638"/>
+        <div style="font-size:1.3rem;font-weight:700">{} stations</div>
+        <span style="color:#06B6D4;font-size:0.8rem">Top vehicle: {}</span>
+    </div>
+    """.format(n_stations, top_vehicle), unsafe_allow_html=True)
+
+with p3:
+    try:
+        growth = ui.get_emerging_hotspots()
+        emerging_cnt = len(growth[growth["trend"].isin(["Rapidly Emerging", "Emerging"])]) if not growth.empty else 0
+        declining_cnt = len(growth[growth["trend"].isin(["Declining", "Rapidly Declining"])]) if not growth.empty else 0
+    except Exception:
+        emerging_cnt, declining_cnt = 0, 0
+    st.markdown("""
+    <div class="rec-card">
+        <strong>📈 Emerging Hotspots</strong>
+        <br/><span style="color:#8A93A6;font-size:0.82rem">Growth trend detection</span>
+        <hr style="margin:8px 0;border-color:#1E2638"/>
+        <div style="font-size:1.3rem;font-weight:700">{} emerging</div>
+        <span style="color:#10B981;font-size:0.8rem">{} declining</span>
+    </div>
+    """.format(emerging_cnt, declining_cnt), unsafe_allow_html=True)
+
+with p4:
+    sim_preview = core.what_if_simulation(zones, target_idx=0, additional_officers=5)
+    st.markdown("""
+    <div class="rec-card">
+        <strong>🎮 What-If Simulator</strong>
+        <br/><span style="color:#8A93A6;font-size:0.82rem">Officer deployment scenarios</span>
+        <hr style="margin:8px 0;border-color:#1E2638"/>
+        <div style="font-size:1.3rem;font-weight:700">{:.0f} → {:.0f}</div>
+        <span style="color:#10B981;font-size:0.8rem">+5 officers = -{:.0f}% impact</span>
+    </div>
+    """.format(sim_preview["current_impact"], sim_preview["new_impact"],
+               sim_preview["impact_reduction_pct"]), unsafe_allow_html=True)
+
+st.caption(
+    "All pages: Hotspot Explorer · Forecast & Patrol · Repeat Offenders · Coverage & ROI · "
+    "Ask ParkSensei · Enforcement Actions · ML Impact Analysis · Next-Day Forecast · "
+    "Alerts · Reports · Traffic Propagation · Officer Allocation · Parking DNA · What-If Simulator"
+)
