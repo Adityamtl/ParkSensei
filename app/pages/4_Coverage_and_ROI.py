@@ -1,17 +1,17 @@
-﻿"""Coverage & ROI — quantify the payoff of targeted deployment and expose enforcement blind spots."""
+"""Coverage & ROI — quantify the payoff of targeted deployment and expose enforcement blind spots."""
 import numpy as np, pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import ui, core
 
-ui.page("Coverage & ROI", "\U0001F3AF")
+ui.page("Coverage & ROI", "C")
 ui.brand_sidebar()
 df = ui.load_data()
 fc = ui.get_forecaster()
 
-st.markdown("## \U0001F3AF Coverage & ROI")
-st.caption("Why targeted deployment beats spreading thin — and where enforcement isn't looking.")
+st.markdown("## Coverage & ROI")
+st.caption("Why targeted deployment outperforms even coverage, and where enforcement gaps exist.")
 
 # ============================ ROI / targeting ============================
 st.subheader("Enforcement ROI — the power of targeting")

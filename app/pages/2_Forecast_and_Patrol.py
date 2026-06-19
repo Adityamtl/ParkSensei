@@ -1,18 +1,18 @@
-﻿"""Forecast & Patrol Planner — predict enforcement load and deploy teams optimally.
+"""Forecast & Patrol Planner — predict enforcement load and deploy teams optimally.
    Enhanced with recommended actions per deployment zone and PDF brief download."""
 import numpy as np, pandas as pd
 import streamlit as st
 import ui, core
 
-ui.page("Forecast & Patrol", "\U0001F693")
+ui.page("Forecast & Patrol", "F")
 ui.brand_sidebar()
 
 zones = ui.get_zones()
 fc    = ui.get_forecaster()
 bt    = ui.get_backtest()
 
-st.markdown("## \U0001F693 Forecast & Patrol Planner")
-st.caption("Predict where violations will cluster next, then auto-generate a deployment plan with recommended actions.")
+st.markdown("## Forecast & Patrol Planner")
+st.caption("Predict where violations will cluster next, then generate a deployment plan with recommended actions.")
 
 # ---------------- controls ----------------
 c1, c2, c3, c4 = st.columns([1.2, 1.6, 1, 1])
@@ -66,14 +66,14 @@ with right:
     # Download buttons
     dl1, dl2 = st.columns(2)
     with dl1:
-        st.download_button("⬇ Download plan (CSV)",
+        st.download_button("Download plan (CSV)",
                            plan.to_csv(index=False).encode(),
                            file_name=f"patrol_plan_{day}_{win[0]:02d}{win[1]:02d}.csv",
                            width="stretch")
     with dl2:
         pdf_bytes = ui.generate_pdf_brief(zones, plan=plan, backtest_result=bt)
         if pdf_bytes:
-            st.download_button("📄 Download PDF Brief",
+            st.download_button("Download PDF Brief",
                                pdf_bytes,
                                file_name=f"ParkSensei_brief_{day}_{win[0]:02d}{win[1]:02d}.pdf",
                                mime="application/pdf",
@@ -82,7 +82,7 @@ with right:
 # ---------------- recommended actions per zone ----------------
 if "recommended_action" in plan.columns and len(plan):
     st.markdown("---")
-    st.subheader("🎯 Recommended actions for each deployment zone")
+    st.subheader("Recommended actions for each deployment zone")
     for _, p in plan.iterrows():
         with st.expander(f"{p['team']} → {p['label']} (Impact {p.get('impact_score', 0):.0f})"):
             recs = core.generate_recommendations(p)

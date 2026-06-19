@@ -1,4 +1,4 @@
-﻿"""
+"""
 ParkSensei — Command Center (entry page).
 Run from round2/:  streamlit run app/app.py
 """
@@ -15,9 +15,9 @@ zones = ui.get_zones()
 grid  = ui.get_grid()
 
 # ---------------- hero ----------------
-st.markdown("# \U0001F6A6 ParkSensei")
+st.markdown("# ParkSensei")
 st.markdown("#### Turning 298K parking-violation records into targeted enforcement for Bengaluru")
-st.caption("Theme 1 · Poor Visibility on Parking-Induced Congestion · Gridlock Hackathon 2.0")
+st.caption("Theme 1 — Poor Visibility on Parking-Induced Congestion — Gridlock Hackathon 2.0")
 
 # ---------------- KPIs ----------------
 total      = len(df)
@@ -47,13 +47,12 @@ critical_zones = len(zones[zones["impact_score"] >= 70])
 top_violation = df["primary_type"].mode().iat[0] if len(df) else "unknown"
 
 st.info(
-    f"**\U0001F4CA Judge Brief** — ParkSensei's enhanced 7-factor Congestion Impact Score identifies "
-    f"**{critical_zones} critical zones** (impact ≥ 70). "
+    f"**Summary** — ParkSensei's 7-factor Congestion Impact Score identifies "
+    f"**{critical_zones} critical zones** (impact score 70+). "
     f"On average, **{junction_pct}%** of violations are junction-linked, "
     f"**{peak_pct}%** recur during peak hours, "
     f"and the dominant offence is **{top_violation.lower()}**. "
-    f"Average vehicle obstruction weight is **{avg_pcu:.2f} PCU** — enforcement should prioritize "
-    f"heavy-vehicle zones and junction-clearing over simple ticket counting."
+    f"Average vehicle obstruction weight is **{avg_pcu:.2f} PCU**."
 )
 
 # ---------------- PDF download ----------------
@@ -62,19 +61,19 @@ pdf_bytes = ui.generate_pdf_brief(zones, backtest_result=bt)
 if pdf_bytes:
     col_dl1, col_dl2, _ = st.columns([1, 1, 4])
     with col_dl1:
-        st.download_button("📄 Download PDF Brief", pdf_bytes,
+        st.download_button("Download PDF Brief", pdf_bytes,
                            file_name="parksensei_enforcement_brief.pdf",
                            mime="application/pdf")
     with col_dl2:
         csv_data = zones.head(30).to_csv(index=False).encode()
-        st.download_button("📊 Download Top Zones (CSV)", csv_data,
+        st.download_button("Download Top Zones (CSV)", csv_data,
                            file_name="parksensei_top_zones.csv")
 
 # ---------------- city map ----------------
 left, right = st.columns([2, 1], gap="large")
 with left:
     st.subheader("City-wide violation density")
-    st.caption("3-D hex bins · height & colour = violation volume. Drag to rotate.")
+    st.caption("3-D hex bins — height and colour represent violation volume. Drag to rotate.")
     st.pydeck_chart(ui.deck([ui.hex_layer(grid)], ui.view(zoom=10.4, pitch=50)),
                     width="stretch")
 
@@ -119,8 +118,8 @@ with heat:
 
 # ---------------- top enforcement actions preview ----------------
 st.markdown("---")
-st.subheader("🎯 Top enforcement actions")
-st.caption("AI-generated recommendations for the highest-impact zones")
+st.subheader("Top enforcement actions")
+st.caption("Recommendations for the highest-impact zones")
 
 recs = ui.get_zone_recommendations(top_n=5)
 rec_cols = st.columns(min(len(recs), 5))
@@ -133,4 +132,4 @@ for i, zr in enumerate(recs[:5]):
         if top_rec:
             ui.render_recommendation_card(top_rec)
 
-st.caption("Navigate ▸ Hotspot Explorer · Forecast & Patrol Planner · Enforcement Actions · Repeat-Offender Intelligence")
+st.caption("Navigate: Hotspot Explorer / Forecast & Patrol Planner / Enforcement Actions / Repeat-Offender Intelligence")

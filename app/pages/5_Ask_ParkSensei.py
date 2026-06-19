@@ -1,13 +1,13 @@
-﻿"""Ask ParkSensei — natural-language enforcement co-pilot (Anthropic tool-use over core.py)."""
+"""Ask ParkSensei — natural-language enforcement co-pilot (Anthropic tool-use over core.py)."""
 import os
 import streamlit as st
 import ui, core, copilot
 
-ui.page("Ask ParkSensei", "\U0001F916")
+ui.page("Ask ParkSensei", "Q")
 ui.brand_sidebar()
 
-st.markdown("## \U0001F916 Ask ParkSensei")
-st.caption("Your enforcement co-pilot — ask in plain English, Hindi or Kannada. It runs the *real* models, "
+st.markdown("## Ask ParkSensei")
+st.caption("Your enforcement co-pilot — ask in plain English, Hindi or Kannada. Queries run against the live model, "
            "not canned text.")
 
 EXAMPLES = [
@@ -81,7 +81,7 @@ if q:
             try:
                 answer, plan = copilot.run_agent(client, q, ctx, model=model)
             except Exception as e:
-                answer, plan = f"⚠️ {type(e).__name__}: {e}", None
+                answer, plan = f"Error — {type(e).__name__}: {e}", None
         st.markdown(answer)
         render_plan(plan)
     st.session_state.chat.append({"role": "assistant", "content": answer, "plan": plan})

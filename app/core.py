@@ -1,4 +1,4 @@
-﻿"""
+"""
 core.py - the intelligence layer for Parking Enforcement Intelligence (Theme 1).
 Pure pandas/numpy (no Streamlit) so it is unit-testable standalone:
     python app/core.py
@@ -224,7 +224,6 @@ def generate_recommendations(zone) -> list:
                       f"{arterial_share*100:.0f}% arterial obstruction — vehicles are directly blocking "
                       f"moving lanes and intersections.",
             "window": "24/7 continuous tow presence",
-            "icon": "🚛",
         })
 
     # 2. Peak Hour Enforcement — violation clustering during rush hours
@@ -235,7 +234,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"{peak_share*100:.0f}% of violations during peak hours — targeted enforcement "
                       f"during rush windows will catch maximum offenders.",
             "window": "08:00–11:00 & 17:00–21:00 IST",
-            "icon": "⏰",
         })
 
     # 3. Camera / ANPR Monitoring — high delay or high impact unreachable by patrol
@@ -246,7 +244,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"Average enforcement delay {avg_delay:.0f} mins — manual patrols are too slow. "
                       f"Automated camera enforcement recommended.",
             "window": "Continuous (24/7 automated)",
-            "icon": "📷",
         })
 
     # 4. Repeat Offender Escalation — chronic violators
@@ -257,7 +254,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"{repeat_share*100:.0f}% of violations from repeat offenders — standard fines "
                       f"aren't deterring. Escalate to towing priority / registration flags.",
             "window": "Target arrival times of repeat plates",
-            "icon": "🔁",
         })
 
     # 5. Heavy Vehicle Restriction — high PCU weight zone
@@ -268,7 +264,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"Average PCU {avg_pcu:.1f} — large vehicles (buses, trucks, tempos) dominate "
                       f"violations here. Consider time-based heavy-vehicle entry restrictions.",
             "window": "Peak hours (8–11 AM, 5–9 PM)",
-            "icon": "🚚",
         })
 
     # 6. Signage & Road Marking Audit — high violations but few repeat offenders
@@ -279,7 +274,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"Low repeat ratio ({repeat_share*100:.0f}%) suggests many first-time violators — "
                       f"regulations may be poorly marked. Clear signage could reduce violations 20–30%.",
             "window": "Infrastructure rollout within 14 days",
-            "icon": "🪧",
         })
 
     # 7. Precinct Escalation — critical risk
@@ -290,7 +284,6 @@ def generate_recommendations(zone) -> list:
             "reason": f"Critical impact score ({score:.0f}) — zone requires jurisdictional-level "
                       f"coordination, dedicated towing, and coordinated police sweeps.",
             "window": "Immediate dispatch",
-            "icon": "🚨",
         })
 
     # 8. Routine Patrol — fallback for lower-risk zones
@@ -300,7 +293,6 @@ def generate_recommendations(zone) -> list:
             "priority": "LOW",
             "reason": "Zone within safe limits. Periodic check-ins maintain compliance and gather data.",
             "window": "Weekly daytime rotation",
-            "icon": "👮",
         })
 
     return recs

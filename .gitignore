@@ -11,6 +11,8 @@ _*.log
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.venv/
+venv/
 
 # Secrets — NEVER commit API keys
 .streamlit/secrets.toml

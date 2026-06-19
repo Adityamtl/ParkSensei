@@ -6,12 +6,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import ui, core
 
-ui.page("Hotspot Explorer", "\U0001F5FA️")
+ui.page("Hotspot Explorer", "H")
 ui.brand_sidebar()
 df = ui.load_data()
 
-st.markdown("## \U0001F5FA️ Hotspot Explorer")
-st.caption("Filter the 298K records and watch hotspots re-rank live. Enhanced with 7-factor impact breakdown.")
+st.markdown("## Hotspot Explorer")
+st.caption("Filter the 298K records and watch hotspots re-rank in real time. Scored with 7-factor impact breakdown.")
 
 # ---------------- filters ----------------
 f1, f2, f3, f4 = st.columns([1.1, 1.3, 1.3, 1.3])
@@ -49,7 +49,7 @@ left, right = st.columns([2, 1], gap="large")
 with left:
     st.pydeck_chart(ui.deck([ui.zone_layer(zones)], ui.view(zoom=10.6, pitch=40), ui.TIP_ZONE),
                     width="stretch")
-    st.caption("Bubble size = violations · colour = impact (blue→red)")
+    st.caption("Bubble size = violations, colour = impact (blue to red)")
 with right:
     show_cols = ["label", "violations", "impact_score", "top_violation"]
     if "place_type" in zones.columns:
@@ -66,7 +66,7 @@ with right:
 
 # ---------------- impact breakdown for top zone ----------------
 st.markdown("---")
-st.subheader("🔍 Impact Score Breakdown — Top Zone")
+st.subheader("Impact Score Breakdown — Top Zone")
 st.caption("Explainable 7-factor scoring: see exactly which factors drive the congestion impact.")
 
 top_zone = zones.iloc[0]

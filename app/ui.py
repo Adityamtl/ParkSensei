@@ -1,4 +1,4 @@
-﻿"""
+"""
 ui.py - shared Streamlit helpers: cached data loaders, colour ramps, pydeck/plotly
 builders, PDF report generation, and brand constants. Pages stay thin and import from here.
 """
@@ -34,40 +34,54 @@ _CSS = """
 html, body, [class*="css"], [data-testid="stMarkdownContainer"] { font-family: 'Inter', sans-serif; }
 [data-testid="stToolbar"], #MainMenu, footer { visibility: hidden; }
 [data-testid="stHeader"] { background: transparent; }
-.block-container { padding-top: 2.2rem; padding-bottom: 2rem; max-width: 1480px; }
+.block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 1480px; }
 [data-testid="stMetric"] {
-    background: linear-gradient(180deg, #171D2A 0%, #141926 100%);
-    border: 1px solid #232B3D; border-radius: 14px; padding: 14px 18px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    background: linear-gradient(180deg, #151A25 0%, #121620 100%);
+    border: 1px solid #1E2638; border-radius: 10px; padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    transition: border-color 0.2s ease;
 }
-[data-testid="stMetricValue"] { font-weight: 700; }
-[data-testid="stMetricLabel"] p { color: #9aa4b8; font-weight: 500; }
+[data-testid="stMetric"]:hover { border-color: #2E3A52; }
+[data-testid="stMetricValue"] { font-weight: 700; font-size: 1.5rem; }
+[data-testid="stMetricLabel"] p { color: #8A93A6; font-weight: 500; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
 section[data-testid="stSidebar"] {
-    background: #0B0F17; border-right: 1px solid #1c2433;
+    background: #0A0E16; border-right: 1px solid #171D2A;
     min-width: 280px !important;
     transform: none !important;
     transition: none !important;
 }
-section[data-testid="stSidebar"] > div { padding-top: 1rem; }
+section[data-testid="stSidebar"] > div { padding-top: 1.2rem; }
 [data-testid="stSidebarCollapsedControl"] { display: none !important; }
-h1, h2, h3 { letter-spacing: -0.015em; font-weight: 700; }
+h1 { letter-spacing: -0.02em; font-weight: 700; font-size: 1.8rem; }
+h2 { letter-spacing: -0.015em; font-weight: 700; font-size: 1.35rem; }
+h3 { letter-spacing: -0.01em; font-weight: 600; font-size: 1.1rem; }
 .stButton button, [data-testid="stDownloadButton"] button {
-    border-radius: 10px; font-weight: 600; border: 1px solid #2a3346;
+    border-radius: 8px; font-weight: 600; border: 1px solid #252E40;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-hr { margin: 1.1rem 0; border-color: #1f2735; }
-.rec-card { background: linear-gradient(180deg, #171D2A 0%, #141926 100%);
-    border: 1px solid #232B3D; border-radius: 12px; padding: 16px; margin-bottom: 10px; }
-.rec-badge { display: inline-block; padding: 3px 10px; border-radius: 6px;
-    font-weight: 700; font-size: 0.75rem; color: #fff; }
-.rec-badge-CRITICAL { background: #E2352B; }
-.rec-badge-HIGH { background: #E8923E; }
-.rec-badge-MEDIUM { background: #C9A635; }
-.rec-badge-LOW { background: #4C8BF5; }
+.stButton button:hover, [data-testid="stDownloadButton"] button:hover {
+    border-color: #3A4766;
+}
+hr { margin: 1.2rem 0; border-color: #1A2030; }
+.rec-card {
+    background: linear-gradient(180deg, #151A25 0%, #121620 100%);
+    border: 1px solid #1E2638; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+    transition: border-color 0.2s ease;
+}
+.rec-card:hover { border-color: #2E3A52; }
+.rec-badge { display: inline-block; padding: 3px 9px; border-radius: 4px;
+    font-weight: 700; font-size: 0.7rem; color: #fff; letter-spacing: 0.03em; text-transform: uppercase; }
+.rec-badge-CRITICAL { background: #C4302B; }
+.rec-badge-HIGH { background: #CC7E35; }
+.rec-badge-MEDIUM { background: #A68D2E; }
+.rec-badge-LOW { background: #3D73CC; }
+.sidebar-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; color: #E0E4EC; }
+.sidebar-tagline { font-size: 0.78rem; color: #6B7384; line-height: 1.4; margin-top: 2px; }
 </style>
 """
 
-def page(title, icon="\U0001F6A6"):
-    st.set_page_config(page_title=f"{title} · ParkSensei", page_icon=icon, layout="wide",
+def page(title, icon="P"):
+    st.set_page_config(page_title=f"{title} | ParkSensei", page_icon=icon, layout="wide",
                        initial_sidebar_state="auto")
     st.markdown(_CSS, unsafe_allow_html=True)
 
@@ -353,9 +367,9 @@ def render_recommendation_card(rec: dict):
     st.markdown(f"""
     <div class="rec-card">
         <span class="rec-badge rec-badge-{p}">{p}</span>
-        &nbsp; <strong>{rec.get('icon', '📋')} {rec['action']}</strong>
-        <br/><span style="color:#9aa4b8; font-size:0.88rem;">{rec['reason']}</span>
-        <br/><span style="color:#6a7385; font-size:0.8rem;">⏰ {rec['window']}</span>
+        &nbsp; <strong>{rec['action']}</strong>
+        <br/><span style="color:#8A93A6; font-size:0.85rem;">{rec['reason']}</span>
+        <br/><span style="color:#606878; font-size:0.78rem;">Window: {rec['window']}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -364,11 +378,11 @@ def kpi(col, label, value, help=None):
     col.metric(label, value, help=help)
 
 def brand_sidebar():
-    st.sidebar.markdown("## \U0001F6A6 ParkSensei")
-    st.sidebar.caption("Parking Enforcement Intelligence for Bengaluru Traffic Police")
+    st.sidebar.markdown('<div class="sidebar-brand">ParkSensei</div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div class="sidebar-tagline">Parking Enforcement Intelligence<br/>Bengaluru Traffic Police</div>', unsafe_allow_html=True)
     st.sidebar.markdown("---")
     st.sidebar.markdown(
-        "**Enhanced** with PCU vehicle weights, "
+        "PCU vehicle weights, "
         "7-factor impact scoring, and "
         "actionable enforcement recommendations."
     )

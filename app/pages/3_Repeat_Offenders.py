@@ -4,12 +4,12 @@ import streamlit as st
 import plotly.express as px
 import ui, core
 
-ui.page("Repeat Offenders", "\U0001F501")
+ui.page("Repeat Offenders", "R")
 ui.brand_sidebar()
 df = ui.load_data()
 
-st.markdown("## \U0001F501 Repeat-Offender Intelligence")
-st.caption("15% of vehicles cause a third of all violations — find and target the chronic ones.")
+st.markdown("## Repeat-Offender Intelligence")
+st.caption("15% of vehicles account for a third of all violations. Identify and target chronic offenders.")
 
 vc = core.vehicle_counts(df)
 repeat = vc[vc >= 2]

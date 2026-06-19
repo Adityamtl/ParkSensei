@@ -1,4 +1,4 @@
-﻿"""Enforcement Action Planner — AI-generated actionable recommendations per zone.
+"""Enforcement Action Planner — AI-generated actionable recommendations per zone.
    Combines ParkWatch AI's recommendation engine with ParkSensei's intelligence layer."""
 import numpy as np, pandas as pd
 import streamlit as st
@@ -6,14 +6,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 import ui, core
 
-ui.page("Enforcement Actions", "🎯")
+ui.page("Enforcement Actions", "E")
 ui.brand_sidebar()
 
 df    = ui.load_data()
 zones = ui.get_zones()
 
-st.markdown("## 🎯 Enforcement Action Planner")
-st.caption("AI-generated, explainable enforcement recommendations for every high-impact zone.")
+st.markdown("## Enforcement Action Planner")
+st.caption("Explainable enforcement recommendations for every high-impact zone.")
 
 # ---------------- generate recommendations ----------------
 zone_recs = ui.get_zone_recommendations(top_n=20)
@@ -72,8 +72,8 @@ with ch2:
 
 # ---------------- zone-by-zone recommendations ----------------
 st.markdown("---")
-st.subheader("📋 Zone-by-zone enforcement recommendations")
-st.caption("Each zone's 7-factor impact breakdown + actionable enforcement steps.")
+st.subheader("Zone-by-zone enforcement recommendations")
+st.caption("Each zone's 7-factor impact breakdown and actionable enforcement steps.")
 
 for i, zr in enumerate(zone_recs):
     z = zr["zone"]
@@ -81,11 +81,11 @@ for i, zr in enumerate(zone_recs):
     top_priority = zr["top_priority"]
 
     # Zone header
-    priority_emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🔵"}.get(top_priority, "⚪")
+    priority_label = {"CRITICAL": "CRIT", "HIGH": "HIGH", "MEDIUM": "MED", "LOW": "LOW"}.get(top_priority, "--")
     with st.expander(
-        f"{priority_emoji} **#{i+1}  {z.get('label', 'Zone')}** — "
-        f"Impact {z.get('impact_score', 0):.0f} · "
-        f"{int(z.get('violations', 0)):,} violations · "
+        f"[{priority_label}] #{i+1}  {z.get('label', 'Zone')} — "
+        f"Impact {z.get('impact_score', 0):.0f} | "
+        f"{int(z.get('violations', 0)):,} violations | "
         f"{zr['top_action']}",
         expanded=(i < 3)
     ):
@@ -128,16 +128,16 @@ for i, zr in enumerate(zone_recs):
         # Additional zone context
         extra_cols = st.columns(3)
         if "place_type" in z:
-            extra_cols[0].markdown(f"📍 **Place type:** {z['place_type']}")
+            extra_cols[0].markdown(f"**Place type:** {z['place_type']}")
         if "top_violation" in z:
-            extra_cols[1].markdown(f"⚠️ **Top offence:** {z['top_violation']}")
+            extra_cols[1].markdown(f"**Top offence:** {z['top_violation']}")
         if "avg_delay_mins" in z and pd.notna(z.get("avg_delay_mins")):
-            extra_cols[2].markdown(f"⏱️ **Avg delay:** {z['avg_delay_mins']:.0f} mins")
+            extra_cols[2].markdown(f"**Avg delay:** {z['avg_delay_mins']:.0f} mins")
 
 # ---------------- enforcement delay by station ----------------
 st.markdown("---")
-st.subheader("⏱️ Enforcement delay by police station")
-st.caption("Which stations are slowest to respond? Higher delay = more time violations go unchallenged.")
+st.subheader("Enforcement delay by police station")
+st.caption("Which stations are slowest to respond? Higher delay indicates more time violations go unchallenged.")
 
 delay_df = core.delay_by_station(df)
 if len(delay_df) and delay_df["avg_delay"].notna().any():
@@ -185,7 +185,7 @@ def _build_recs_csv(zone_recs_data):
 # CSV download
 st.markdown("---")
 st.download_button(
-    "📊 Download full recommendations (CSV)",
+    "Download full recommendations (CSV)",
     _build_recs_csv(zone_recs).encode(),
     file_name="parksensei_enforcement_actions.csv",
     mime="text/csv"
