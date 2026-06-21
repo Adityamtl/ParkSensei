@@ -32,8 +32,14 @@ _CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 html, body, [class*="css"], [data-testid="stMarkdownContainer"] { font-family: 'Inter', sans-serif; }
-[data-testid="stToolbar"], #MainMenu, footer { visibility: hidden; }
+#MainMenu, footer { visibility: hidden; }
 [data-testid="stHeader"] { background: transparent; }
+[data-testid="stToolbar"] { visibility: visible; }
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapseButton"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 .block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 1480px; }
 [data-testid="stMetric"] {
     background: linear-gradient(180deg, #151A25 0%, #121620 100%);
@@ -46,12 +52,8 @@ html, body, [class*="css"], [data-testid="stMarkdownContainer"] { font-family: '
 [data-testid="stMetricLabel"] p { color: #8A93A6; font-weight: 500; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
 section[data-testid="stSidebar"] {
     background: #0A0E16; border-right: 1px solid #171D2A;
-    min-width: 280px !important;
-    transform: none !important;
-    transition: none !important;
 }
 section[data-testid="stSidebar"] > div { padding-top: 1.2rem; }
-[data-testid="stSidebarCollapsedControl"] { display: none !important; }
 h1 { letter-spacing: -0.02em; font-weight: 700; font-size: 1.8rem; }
 h2 { letter-spacing: -0.015em; font-weight: 700; font-size: 1.35rem; }
 h3 { letter-spacing: -0.01em; font-weight: 600; font-size: 1.1rem; }
@@ -82,7 +84,7 @@ hr { margin: 1.2rem 0; border-color: #1A2030; }
 
 def page(title, icon="P"):
     st.set_page_config(page_title=f"{title} | ParkSensei", page_icon=icon, layout="wide",
-                       initial_sidebar_state="auto")
+                       initial_sidebar_state="expanded")
     st.markdown(_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- cached loaders
