@@ -1,14 +1,14 @@
-"""Reports & Export — Unified download hub for all ParkSensei analysis outputs.
+"""Reports & Exports - Unified download hub for all ParkSensei analysis outputs.
    Adapted from ParkSight AI's Reports page."""
 import json
 import numpy as np, pandas as pd
 import streamlit as st
 import ui, core
 
-ui.page("Reports & Export", "R")
+ui.page("Reports & Exports", "R")
 ui.brand_sidebar()
 
-st.markdown("## Reports & Export")
+st.markdown("## Reports & Exports")
 st.caption("Download full analysis outputs: enforcement priorities, DBSCAN clusters, forecasts, recommendations, and more.")
 
 df    = ui.load_data()

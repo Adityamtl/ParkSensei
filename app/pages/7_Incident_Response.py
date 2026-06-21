@@ -1,4 +1,4 @@
-"""Incident Command Center — Dynamic Routing, Emergency Corridors, Police Dispatch, Transit Advisor,
+"""Incident Response - Dynamic Routing, Emergency Corridors, Police Dispatch, Transit Advisor,
    KNN Intelligence, Road Closure Predictor, After-Action Feedback Loop."""
 import math
 from datetime import datetime
@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 import ui, core, traffic_network as tn, incident_db
 
-ui.page("Incident Command Center", "C")
+ui.page("Incident Response", "R")
 ui.brand_sidebar()
 
 # Build the road network graph once
@@ -32,7 +32,7 @@ RISK_PRESETS = {
     "Severe Gridlock / VIP Movement": 95,
 }
 
-st.markdown("## Incident Command Center")
+st.markdown("## Incident Response")
 st.caption("Real-time incident response: routing diversions, emergency corridors, police dispatch, and transit advisories "
            "powered by Dijkstra's algorithm on Bengaluru's 20-node road network.")
 

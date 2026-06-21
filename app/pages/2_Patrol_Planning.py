@@ -1,4 +1,4 @@
-"""Operations & Dispatch — Forecast & Patrol, Officer Allocation, Next Day Forecast."""
+"""Patrol Planning - Forecast & Patrol, Officer Allocation, Next Day Forecast."""
 import numpy as np, pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pydeck as pdk
 import ui, core
 
-ui.page("Operations & Dispatch", "O")
+ui.page("Patrol Planning", "P")
 ui.brand_sidebar()
 
 

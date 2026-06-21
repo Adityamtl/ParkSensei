@@ -1,4 +1,4 @@
-"""Advanced Intelligence — ML Impact Analysis, What-If Simulator, Alerts."""
+"""Intelligence Lab - ML Impact Analysis, What-If Simulator, Alerts."""
 import numpy as np, pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pydeck as pdk
 import ui, core
 
-ui.page("Advanced Intelligence", "I")
+ui.page("Intelligence Lab", "I")
 ui.brand_sidebar()
 
 

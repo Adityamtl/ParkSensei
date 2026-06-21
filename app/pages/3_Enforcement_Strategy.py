@@ -1,11 +1,11 @@
-"""Strategy & Review — Enforcement Actions, Repeat Offenders, Coverage & ROI."""
+"""Enforcement Strategy - Enforcement Actions, Repeat Offenders, Coverage & ROI."""
 import numpy as np, pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import ui, core
 
-ui.page("Strategy & Review", "S")
+ui.page("Enforcement Strategy", "S")
 ui.brand_sidebar()
 
 

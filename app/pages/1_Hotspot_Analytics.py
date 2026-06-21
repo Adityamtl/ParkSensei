@@ -1,4 +1,4 @@
-"""Analytics & Insights — Hotspot Explorer, Parking DNA, Traffic Propagation."""
+"""Hotspot Analytics - Hotspot Explorer, Parking DNA, Traffic Propagation."""
 import numpy as np, pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pydeck as pdk
 import ui, core
 
-ui.page("Analytics & Insights", "A")
+ui.page("Hotspot Analytics", "H")
 ui.brand_sidebar()
 
 # =====================================================================
