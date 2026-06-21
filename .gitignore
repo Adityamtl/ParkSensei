@@ -9,7 +9,7 @@ _*.log
 
 # Documentation policy for submission: keep only the root GitHub README.
 *.md
-!/README.md
+# !/README.md
 
 # Python
 __pycache__/
