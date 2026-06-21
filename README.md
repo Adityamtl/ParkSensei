@@ -6,7 +6,6 @@ ParkSensei turns 298,445 Bengaluru parking-violation records into a command syst
 
 Built for Gridlock Hackathon 2.0, Round 2, Theme 1: Poor Visibility on Parking-Induced Congestion.
 
-Live demo: https://flipkart-gridlock-20-r2-rinxb9yibzp8knp6quhfew.streamlit.app
 
 ## Why ParkSensei
 
