@@ -206,7 +206,6 @@ with p4:
                sim_preview["impact_reduction_pct"]), unsafe_allow_html=True)
 
 st.caption(
-    "All pages: Hotspot Explorer · Forecast & Patrol · Repeat Offenders · Coverage & ROI · "
-    "Ask ParkSensei · Enforcement Actions · ML Impact Analysis · Next-Day Forecast · "
-    "Alerts · Reports · Traffic Propagation · Officer Allocation · Parking DNA · What-If Simulator"
+    "All modules: Analytics & Insights · Operations & Dispatch · Strategy & Review · "
+    "Advanced Intelligence · Ask ParkSensei · Reports & Export"
 )

@@ -1105,10 +1105,9 @@ def predict_next_7days(trained: dict, df: pd.DataFrame) -> dict:
         rstd = float(np.std(recent_city[-7:]))
         dh = float(dow_avg_city.get(dow, city_mean))
 
-        feat = pd.DataFrame([[lag1, lag2, lag3, lag7, r7, r14, rstd, dh,
-                              dow, month, int(dow >= 5), int(dow == 6)]],
-                            columns=trained["city_features"])
-        pred = max(0, round(float(city_model.predict(feat.values)[0])))
+        feat = np.array([[lag1, lag2, lag3, lag7, r7, r14, rstd, dh,
+                          dow, month, int(dow >= 5), int(dow == 6)]])
+        pred = max(0, round(float(city_model.predict(feat)[0])))
         risk = ("HIGH" if pred >= city_high_thresh else
                 "MEDIUM" if pred >= city_mean else "LOW")
 
