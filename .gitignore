@@ -7,6 +7,10 @@ dataset theme 2/
 _*.py
 _*.log
 
+# Documentation policy for submission: keep only the root GitHub README.
+*.md
+!/README.md
+
 # Python
 __pycache__/
 *.pyc
