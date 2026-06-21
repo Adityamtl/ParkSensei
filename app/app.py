@@ -207,5 +207,5 @@ with p4:
 
 st.caption(
     "All modules: Analytics & Insights · Operations & Dispatch · Strategy & Review · "
-    "Advanced Intelligence · Ask ParkSensei · Reports & Export"
+    "Advanced Intelligence · Ask ParkSensei · Reports & Export · Incident Command Center"
 )

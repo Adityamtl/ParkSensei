@@ -6,3 +6,4 @@ plotly==6.3.0
 google-genai==1.51.0
 fpdf2==2.8.3
 scikit-learn==1.6.1
+networkx
