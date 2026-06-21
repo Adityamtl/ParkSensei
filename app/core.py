@@ -858,7 +858,7 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
                     scores = cross_val_score(model, X_sc, y, cv=tscv,
                                              scoring="neg_mean_absolute_error")
                 else:
-                    scores = cross_val_score(model, X.values, y, cv=tscv,
+                    scores = cross_val_score(model, X, y, cv=tscv,
                                              scoring="neg_mean_absolute_error")
                 mae_cv = -scores.mean()
                 if mae_cv < best_mae:
@@ -875,7 +875,7 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
             scaler = StandardScaler()
             X_fit = scaler.fit_transform(X)
         else:
-            X_fit = X.values
+            X_fit = X
         best_model.fit(X_fit, y)
 
         # Evaluate on last 20%
@@ -885,7 +885,7 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
         if scaler:
             y_pred = best_model.predict(scaler.transform(X_test))
         else:
-            y_pred = best_model.predict(X_test.values)
+            y_pred = best_model.predict(X_test)
 
         mae = mean_absolute_error(y_test, y_pred)
         rmse = float(np.sqrt(mean_squared_error(y_test, y_pred)))
@@ -943,10 +943,10 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
 
     city_model = RandomForestRegressor(n_estimators=200, max_depth=5,
                                        min_samples_leaf=3, random_state=42, n_jobs=-1)
-    city_model.fit(X_city.values, y_city)
+    city_model.fit(X_city, y_city)
 
     split = int(len(city_daily) * 0.8)
-    city_pred = city_model.predict(X_city.iloc[split:].values)
+    city_pred = city_model.predict(X_city.iloc[split:])
     city_mae = mean_absolute_error(y_city.iloc[split:], city_pred)
     city_r2 = r2_score(y_city.iloc[split:], city_pred)
     city_mape = float(np.mean(np.abs((y_city.iloc[split:].values - city_pred) /

@@ -88,15 +88,15 @@ def page(title, icon="P"):
     st.markdown(_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- cached loaders
-@st.cache_data(show_spinner="Loading violations…")
+@st.cache_data(show_spinner="Loading violations…", max_entries=1, ttl=3600)
 def load_data():
     return core.load_clean()
 
-@st.cache_data(show_spinner="Scoring zones…")
+@st.cache_data(show_spinner="Scoring zones…", max_entries=1, ttl=3600)
 def get_zones():
     return core.add_impact(core.build_zones(load_data()))
 
-@st.cache_data(show_spinner="Building grid…")
+@st.cache_data(show_spinner="Building grid…", max_entries=1, ttl=3600)
 def get_grid():
     df = load_data()
     return (df.groupby("gh7")
@@ -104,60 +104,60 @@ def get_grid():
                    n=("lat","size"), sev=("severity","mean"))
               .reset_index())
 
-@st.cache_data(show_spinner="Training forecaster…")
+@st.cache_resource(show_spinner="Training forecaster…", max_entries=1, ttl=3600)
 def get_forecaster():
     return core.build_forecaster(load_data())
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=1, ttl=3600)
 def get_backtest():
     return core.backtest(load_data())
 
-@st.cache_data(show_spinner="Generating recommendations…")
+@st.cache_data(show_spinner="Generating recommendations…", max_entries=1, ttl=3600)
 def get_zone_recommendations(top_n=20):
     zones = get_zones()
     return core.zone_recommendations(zones, top_n)
 
-@st.cache_data(show_spinner="Running DBSCAN clustering…")
+@st.cache_data(show_spinner="Running DBSCAN clustering…", max_entries=1, ttl=3600)
 def get_dbscan_clusters():
     return core.dbscan_clusters(load_data())
 
-@st.cache_data(show_spinner="Computing cluster quality metrics…")
+@st.cache_data(show_spinner="Computing cluster quality metrics…", max_entries=1, ttl=3600)
 def get_cluster_quality():
     return core.cluster_quality_metrics(load_data())
 
-@st.cache_data(show_spinner="Training next-day prediction models…")
-def get_nextday_forecast():
-    df = load_data()
-    trained = core.train_nextday_models(df)
-    if "error" in trained:
-        return trained
-    return core.predict_next_7days(trained, df)
-
-@st.cache_data(show_spinner="Training congestion model…")
-def get_congestion_model():
-    return core.train_congestion_model(load_data())
-
-@st.cache_data(show_spinner="Getting trained model details…")
+@st.cache_resource(show_spinner="Getting trained model details…", max_entries=1, ttl=3600)
 def get_nextday_trained():
     """Return the raw trained model dict (for feature importance etc.)."""
     df = load_data()
     return core.train_nextday_models(df)
 
-@st.cache_data(show_spinner="Analysing traffic propagation…")
+@st.cache_data(show_spinner="Training next-day prediction models…", max_entries=1, ttl=3600)
+def get_nextday_forecast():
+    df = load_data()
+    trained = get_nextday_trained()
+    if "error" in trained:
+        return trained
+    return core.predict_next_7days(trained, df)
+
+@st.cache_resource(show_spinner="Training congestion model…", max_entries=1, ttl=3600)
+def get_congestion_model():
+    return core.train_congestion_model(load_data())
+
+@st.cache_data(show_spinner="Analysing traffic propagation…", max_entries=1, ttl=3600)
 def get_traffic_propagation(top_n=30):
     """Run propagation analysis on top N zones (limited for performance)."""
     zones = get_zones()
     return core.traffic_propagation(zones.head(top_n))
 
-@st.cache_data(show_spinner="Building parking DNA profiles…")
+@st.cache_data(show_spinner="Building parking DNA profiles…", max_entries=1, ttl=3600)
 def get_parking_dna():
     return core.parking_dna_profiles(load_data())
 
-@st.cache_data(show_spinner="Detecting emerging hotspots…")
+@st.cache_data(show_spinner="Detecting emerging hotspots…", max_entries=1, ttl=3600)
 def get_emerging_hotspots():
     return core.emerging_hotspot_analysis(load_data())
 
-@st.cache_data(show_spinner="Computing officer allocation…")
+@st.cache_data(show_spinner="Computing officer allocation…", max_entries=1, ttl=3600)
 def get_officer_allocation(total_officers=100, top_n=20):
     zones = get_zones()
     return core.officer_allocation(zones, total_officers, top_n)
