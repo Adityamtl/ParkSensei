@@ -174,13 +174,18 @@ def _render_ml_impact():
             rows.append({
                 "Junction": "City-wide",
                 "Model": "RandomForest",
-                "MAE": cw.get("mae", "\u2014"),
-                "RMSE": "\u2014",
-                "R\u00b2": cw.get("r2", "\u2014"),
+                "MAE": cw.get("mae", None),
+                "RMSE": None,
+                "R\u00b2": cw.get("r2", None),
                 "Accuracy": f"{cw.get('accuracy', 0)}%",
-                "Days": "\u2014",
+                "Days": None,
             })
-            st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+            results_df = pd.DataFrame(rows)
+            # Ensure numeric columns are proper floats (not mixed str/float)
+            for col in ["MAE", "RMSE", "R\u00b2"]:
+                results_df[col] = pd.to_numeric(results_df[col], errors="coerce")
+            results_df["Days"] = pd.to_numeric(results_df["Days"], errors="coerce").astype("Int64")
+            st.dataframe(results_df, hide_index=True, width="stretch")
 
         # Feature importance from top junction
         junctions = forecast.get("junctions", {})

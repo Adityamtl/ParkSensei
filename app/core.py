@@ -1028,11 +1028,12 @@ def predict_next_7days(trained: dict, df: pd.DataFrame) -> dict:
             last7 = recent[-7:]
             trend = float(np.polyfit(range(len(last7)), last7, 1)[0]) if len(last7) >= 2 else 0.0
 
-            feat_vec = np.array([[lag_1d, lag_2d, lag_3d, lag_7d,
+            feat_vec = pd.DataFrame([[lag_1d, lag_2d, lag_3d, lag_7d,
                                   roll_3d, roll_7d, roll_14d, roll_std,
                                   dow_hist, mon_hist, trend,
                                   dow, month, is_weekend, is_monday, is_sunday,
-                                  recent_avg_sev, recent_sev, recent_peak, recent_vehicles]])
+                                  recent_avg_sev, recent_sev, recent_peak, recent_vehicles]],
+                                  columns=_NEXTDAY_FEATURES)
 
             if scaler:
                 feat_vec = scaler.transform(feat_vec)
@@ -1105,8 +1106,9 @@ def predict_next_7days(trained: dict, df: pd.DataFrame) -> dict:
         rstd = float(np.std(recent_city[-7:]))
         dh = float(dow_avg_city.get(dow, city_mean))
 
-        feat = np.array([[lag1, lag2, lag3, lag7, r7, r14, rstd, dh,
-                          dow, month, int(dow >= 5), int(dow == 6)]])
+        feat = pd.DataFrame([[lag1, lag2, lag3, lag7, r7, r14, rstd, dh,
+                          dow, month, int(dow >= 5), int(dow == 6)]],
+                          columns=trained["city_features"])
         pred = max(0, round(float(city_model.predict(feat)[0])))
         risk = ("HIGH" if pred >= city_high_thresh else
                 "MEDIUM" if pred >= city_mean else "LOW")
