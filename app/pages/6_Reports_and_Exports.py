@@ -148,11 +148,10 @@ with d4:
     top_off = vc.head(50).rename("violations").reset_index()
     top_off.columns = ["vehicle", "violations"]
     meta = (df[df["vehicle_number"].isin(top_off["vehicle"])]
-            .groupby("vehicle_number")
-            .agg(vehicle_type=("vehicle_type", lambda s: s.mode().iat[0]),
+            .groupby("vehicle_number", observed=True)
+            .agg(vehicle_type=("vehicle_type", lambda s: core._first_mode(s, "UNKNOWN")),
                  zones=("gh6", "nunique"),
-                 top_area=("police_station", lambda s: s[s.str.lower() != "nan"].mode().iat[0]
-                           if (s.str.lower() != "nan").any() else "—"))
+                 top_area=("police_station", lambda s: core._first_mode(s[s.str.lower() != "nan"], "Unknown")))
             .reset_index().rename(columns={"vehicle_number": "vehicle"}))
     top_off = top_off.merge(meta, on="vehicle")
     st.download_button("Download", top_off.to_csv(index=False).encode(),
@@ -243,3 +242,4 @@ st.download_button("Download dashboard_stats.json",
                    stats_json.encode(),
                    file_name="parksensei_dashboard_stats.json",
                    mime="application/json")
+

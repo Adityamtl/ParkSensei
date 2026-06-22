@@ -222,11 +222,10 @@ def _render_repeat_offenders():
         top = vc.head(25).rename("violations").reset_index()
         top.columns = ["vehicle", "violations"]
         meta = (df[df["vehicle_number"].isin(top["vehicle"])]
-                .groupby("vehicle_number")
-                .agg(vehicle_type=("vehicle_type", lambda s: s.mode().iat[0]),
+                .groupby("vehicle_number", observed=True)
+                .agg(vehicle_type=("vehicle_type", lambda s: core._first_mode(s, "UNKNOWN")),
                      zones=("gh6", "nunique"),
-                     top_area=("police_station", lambda s: s[s.str.lower() != "nan"].mode().iat[0]
-                               if (s.str.lower() != "nan").any() else "—"))
+                     top_area=("police_station", lambda s: core._first_mode(s[s.str.lower() != "nan"], "Unknown")))
                 .reset_index().rename(columns={"vehicle_number": "vehicle"}))
         top = top.merge(meta, on="vehicle")
         top.columns = ["Vehicle", "Times caught", "Type", "Distinct zones", "Main area"]
@@ -346,3 +345,4 @@ with tab2:
     _render_repeat_offenders()
 with tab3:
     _render_coverage_roi()
+

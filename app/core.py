@@ -20,8 +20,36 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
 # --------------------------------------------------------------------------
+def _optimize_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Reduce resident memory after loading the cleaned deployment dataset."""
+    category_cols = [
+        "gh6", "gh7", "primary_type", "police_station",
+        "junction_name", "vehicle_type", "vehicle_number", "place_type",
+    ]
+    float_cols = [
+        "lat", "lon", "severity", "pcu", "obstruction_weight",
+        "action_delay_mins",
+    ]
+    int_cols = ["hour", "dow"]
+    bool_cols = ["has_junction", "is_peak_hour", "is_arterial"]
+
+    for col in category_cols:
+        if col in df.columns:
+            df[col] = df[col].astype("category")
+    for col in float_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], downcast="float")
+    for col in int_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], downcast="integer")
+    for col in bool_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(bool)
+    return df
+
+
 def load_clean() -> pd.DataFrame:
-    return pd.read_pickle(DATA / "clean.pkl")
+    return _optimize_clean_frame(pd.read_pickle(DATA / "clean.pkl"))
 
 def load_junctions() -> pd.DataFrame:
     return pd.read_pickle(DATA / "junctions.pkl")
@@ -33,14 +61,19 @@ def vehicle_counts(df: pd.DataFrame) -> pd.Series:
     return vc[vc.index.str.lower() != "nan"]
 
 # --------------------------------------------------------------------------
+def _first_mode(series: pd.Series, default="Unknown"):
+    mode = series.dropna().mode()
+    return mode.iat[0] if len(mode) else default
+
+
 def _label_for(group: pd.DataFrame) -> str:
     """Human-readable label for a zone: dominant named junction else police station."""
     j = group.loc[group["has_junction"], "junction_name"]
     if len(j):
-        return j.mode().iat[0]
+        return _first_mode(j, "Unnamed area")
     s = group["police_station"]
     s = s[s.str.lower() != "nan"]
-    return (s.mode().iat[0] if len(s) else "Unnamed area")
+    return _first_mode(s, "Unnamed area") if len(s) else "Unnamed area"
 
 def _safe_col_mean(df, col, default=0.0):
     """Safely compute mean of a column, returning default if column missing."""
@@ -50,7 +83,7 @@ def _safe_col_mean(df, col, default=0.0):
 
 def build_zones(df: pd.DataFrame, key: str = "gh6") -> pd.DataFrame:
     """Collapse the point cloud into ~800 neighbourhood zones with rich stats."""
-    g = df.groupby(key)
+    g = df.groupby(key, observed=True)
 
     # --- base aggregations (always available) ---
     zones = g.agg(
@@ -105,7 +138,7 @@ def build_zones(df: pd.DataFrame, key: str = "gh6") -> pd.DataFrame:
     # place type (dominant)
     if "place_type" in df.columns:
         place_agg = g["place_type"].agg(
-            lambda s: s.mode().iat[0] if len(s.mode()) else "Street segment"
+            lambda s: _first_mode(s, "Street segment")
         ).rename("place_type").reset_index()
         zones = zones.merge(place_agg, on=key)
     else:
@@ -115,12 +148,12 @@ def build_zones(df: pd.DataFrame, key: str = "gh6") -> pd.DataFrame:
     vc = df["vehicle_number"].map(df["vehicle_number"].value_counts())
     df_temp = df.copy()
     df_temp["_is_repeat"] = (vc >= 2) & (df["vehicle_number"].str.lower() != "nan")
-    rep_agg = df_temp.groupby(key)["_is_repeat"].mean().rename("repeat_vehicle_share").reset_index()
+    rep_agg = df_temp.groupby(key, observed=True)["_is_repeat"].mean().rename("repeat_vehicle_share").reset_index()
     zones = zones.merge(rep_agg, on=key)
 
     # labels and top violation
     labels = g.apply(_label_for, include_groups=False).rename("label").reset_index()
-    top_type = g["primary_type"].agg(lambda s: s.mode().iat[0]).rename("top_violation").reset_index()
+    top_type = g["primary_type"].agg(lambda s: _first_mode(s, "UNKNOWN")).rename("top_violation").reset_index()
     zones = zones.merge(labels, on=key).merge(top_type, on=key)
 
     return zones
@@ -320,11 +353,11 @@ def build_forecaster(df: pd.DataFrame, alpha: float = 5.0) -> dict:
     """Expected enforcement load per (zone, weekday, hour), Bayesian-shrunk toward
        the zone-hour average so sparse weekday cells stay stable.
        rate = (count_zdh + alpha * r_zh) / (n_dow + alpha)   (per matching calendar day)."""
-    n_dow = df.groupby("dow")["ymd"].nunique()                 # # of each weekday in span
+    n_dow = df.groupby("dow", observed=True)["ymd"].nunique()  # # of each weekday in span
     n_dates = df["ymd"].nunique()
-    czdh = df.groupby(["gh6", "dow", "hour"]).size().rename("c").reset_index()
+    czdh = df.groupby(["gh6", "dow", "hour"], observed=True).size().rename("c").reset_index()
     # zone-hour backoff rate (avg violations per day at that hour, any weekday)
-    r_zh = (df.groupby(["gh6", "hour"]).size() / n_dates).rename("r_zh").reset_index()
+    r_zh = (df.groupby(["gh6", "hour"], observed=True).size() / n_dates).rename("r_zh").reset_index()
     czdh = czdh.merge(r_zh, on=["gh6", "hour"], how="left")
     czdh["n_dow"] = czdh["dow"].map(n_dow)
     czdh["rate"] = (czdh["c"] + alpha * czdh["r_zh"]) / (czdh["n_dow"] + alpha)
@@ -336,7 +369,7 @@ def predict_load(fc: dict, dow: int, hours) -> pd.DataFrame:
     hours = list(hours)
     t = fc["rate_zdh"]
     sub = t[(t["dow"] == dow) & (t["hour"].isin(hours))]
-    return (sub.groupby("gh6")["rate"].sum()
+    return (sub.groupby("gh6", observed=True)["rate"].sum()
             .rename("pred_load").reset_index()
             .sort_values("pred_load", ascending=False))
 
@@ -350,8 +383,8 @@ def backtest(df: pd.DataFrame, train_frac: float = 0.8, min_count: int = 20) -> 
     fc = build_forecaster(tr)
     pred = fc["rate_zdh"].rename(columns={"rate": "pred"})
     # actual per-day rate in the test window
-    n_dow_te = te.groupby("dow")["ymd"].nunique()
-    act = te.groupby(["gh6", "dow", "hour"]).size().rename("c_te").reset_index()
+    n_dow_te = te.groupby("dow", observed=True)["ymd"].nunique()
+    act = te.groupby(["gh6", "dow", "hour"], observed=True).size().rename("c_te").reset_index()
     act["actual"] = act["c_te"] / act["dow"].map(n_dow_te)
     m = pred.merge(act, on=["gh6", "dow", "hour"], how="inner")
     m = m[m["c"] >= min_count * train_frac]            # evaluate on cells with signal
@@ -406,7 +439,7 @@ def allocate_patrols(zones: pd.DataFrame, pred: pd.DataFrame, k: int = 10,
 # --------------------------------------------------------------------------
 def coverage_by_hour(df: pd.DataFrame) -> pd.DataFrame:
     """Share of enforcement by hour-of-day — exposes the evening coverage gap."""
-    c = df.groupby("hour").size()
+    c = df.groupby("hour", observed=True).size()
     return pd.DataFrame({"hour": c.index.astype(int),
                          "violations": c.values,
                          "share": (c / c.sum()).values})
@@ -436,7 +469,7 @@ def delay_by_station(df: pd.DataFrame) -> pd.DataFrame:
     if "action_delay_mins" not in df.columns:
         return pd.DataFrame(columns=["police_station", "avg_delay", "median_delay", "violations"])
     valid = df[df["action_delay_mins"].notna() & (df["police_station"].str.lower() != "nan")]
-    agg = (valid.groupby("police_station")
+    agg = (valid.groupby("police_station", observed=True)
            .agg(avg_delay=("action_delay_mins", "mean"),
                 median_delay=("action_delay_mins", "median"),
                 violations=("lat", "size"))
@@ -471,7 +504,7 @@ def dbscan_clusters(df: pd.DataFrame, eps_m: float = 300.0,
     MED_SEV_TYPES = {"PARKING IN A MAIN ROAD", "NO PARKING"}
 
     results = []
-    for cid, grp in clustered.groupby("cluster_id"):
+    for cid, grp in clustered.groupby("cluster_id", observed=True):
         count = len(grp)
         centroid_lat = grp["lat"].mean()
         centroid_lon = grp["lon"].mean()
@@ -485,7 +518,7 @@ def dbscan_clusters(df: pd.DataFrame, eps_m: float = 300.0,
 
         # Station
         if "police_station" in grp.columns:
-            dominant_station = grp["police_station"].mode().iat[0] if len(grp) > 0 else "Unknown"
+            dominant_station = _first_mode(grp["police_station"], "Unknown") if len(grp) > 0 else "Unknown"
         else:
             dominant_station = "Unknown"
 
@@ -502,10 +535,10 @@ def dbscan_clusters(df: pd.DataFrame, eps_m: float = 300.0,
             med_sev_ratio = 0.0
 
         # Vehicle
-        dominant_vehicle = grp["vehicle_type"].mode().iat[0] if "vehicle_type" in grp.columns and len(grp) > 0 else "UNKNOWN"
+        dominant_vehicle = _first_mode(grp["vehicle_type"], "UNKNOWN") if "vehicle_type" in grp.columns and len(grp) > 0 else "UNKNOWN"
 
         # Top violation
-        top_violation = grp["primary_type"].mode().iat[0] if "primary_type" in grp.columns and len(grp) > 0 else "UNKNOWN"
+        top_violation = _first_mode(grp["primary_type"], "UNKNOWN") if "primary_type" in grp.columns and len(grp) > 0 else "UNKNOWN"
 
         # Sunday ratio
         sunday_ratio = (grp["dow"] == 6).mean() if "dow" in grp.columns else 0.0
@@ -651,7 +684,7 @@ def train_congestion_model(df: pd.DataFrame) -> dict:
         return {"error": "junction_name column missing"}
 
     junc_df = df[df.get("has_junction", df["junction_name"] != "No Junction")].copy()
-    daily = junc_df.groupby(["junction_name", "ymd"]).agg(
+    daily = junc_df.groupby(["junction_name", "ymd"], observed=True).agg(
         violations=("lat", "size"),
         avg_severity=("severity", "mean"),
         peak_count=("is_peak_hour", "sum") if "is_peak_hour" in junc_df.columns else ("severity", "size"),
@@ -752,7 +785,7 @@ def _build_daily_features(df: pd.DataFrame, junction: str) -> pd.DataFrame:
 
     sub["date"] = pd.to_datetime(sub["ymd"])
 
-    daily = sub.groupby("date").agg(
+    daily = sub.groupby("date", observed=True).agg(
         violations=("severity", "count"),
         high_sev_count=("severity", lambda x: (x >= 0.8).sum()),
         peak_hour_count=("is_peak_hour", "sum") if "is_peak_hour" in sub.columns else ("severity", "count"),
@@ -781,9 +814,9 @@ def _build_daily_features(df: pd.DataFrame, junction: str) -> pd.DataFrame:
     daily["roll_7d_std"] = daily["violations"].shift(1).rolling(7, min_periods=2).std().fillna(0)
 
     # Historical averages
-    dow_avg = daily.groupby("dow")["violations"].mean()
+    dow_avg = daily.groupby("dow", observed=True)["violations"].mean()
     daily["dow_hist_avg"] = daily["dow"].map(dow_avg)
-    month_avg = daily.groupby("month")["violations"].mean()
+    month_avg = daily.groupby("month", observed=True)["violations"].mean()
     daily["month_hist_avg"] = daily["month"].map(month_avg)
 
     # Trend: slope of last 7 days
@@ -918,7 +951,7 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
         }
 
     # --- City-wide model ---
-    city_daily = df.groupby("ymd").size().reset_index(name="violations")
+    city_daily = df.groupby("ymd", observed=True).size().reset_index(name="violations")
     city_daily["date"] = pd.to_datetime(city_daily["ymd"])
     city_daily = city_daily.sort_values("date")
     city_daily["dow"] = city_daily["date"].dt.dayofweek
@@ -931,7 +964,7 @@ def train_nextday_models(df: pd.DataFrame, junctions: list = None) -> dict:
     city_daily["roll_7d"] = city_daily["violations"].shift(1).rolling(7, min_periods=1).mean()
     city_daily["roll_14d"] = city_daily["violations"].shift(1).rolling(14, min_periods=1).mean()
     city_daily["roll_std"] = city_daily["violations"].shift(1).rolling(7, min_periods=2).std().fillna(0)
-    dow_avg_city = city_daily.groupby("dow")["violations"].mean()
+    dow_avg_city = city_daily.groupby("dow", observed=True)["violations"].mean()
     city_daily["dow_hist"] = city_daily["dow"].map(dow_avg_city)
     city_daily = city_daily.dropna(subset=["lag_1d", "lag_2d", "lag_3d", "lag_7d"])
 
@@ -1265,14 +1298,14 @@ def parking_dna_profiles(df: pd.DataFrame) -> pd.DataFrame:
         if len(temp) < 50:
             continue
 
-        dominant_vehicle = (temp["vehicle_type"].mode().iat[0]
-                           if "vehicle_type" in temp.columns and not temp["vehicle_type"].mode().empty
+        dominant_vehicle = (_first_mode(temp["vehicle_type"], "Unknown")
+                           if "vehicle_type" in temp.columns
                            else "Unknown")
-        dominant_violation = (temp["primary_type"].mode().iat[0]
-                             if "primary_type" in temp.columns and not temp["primary_type"].mode().empty
+        dominant_violation = (_first_mode(temp["primary_type"], "Unknown")
+                             if "primary_type" in temp.columns
                              else "Unknown")
-        peak_hour = (int(temp["hour"].mode().iat[0])
-                     if "hour" in temp.columns and not temp["hour"].mode().empty
+        peak_hour = (int(_first_mode(temp["hour"], -1))
+                     if "hour" in temp.columns
                      else -1)
         weekend_ratio = round(
             temp["dow"].isin([5, 6]).mean() * 100, 1
@@ -1317,12 +1350,13 @@ def emerging_hotspot_analysis(df: pd.DataFrame) -> pd.DataFrame:
     stations = [s for s in df["police_station"].dropna().unique()
                 if str(s).lower() != "nan"]
 
-    early_counts = (early.groupby("police_station").size()
+    early_counts = (early.groupby("police_station", observed=True).size()
                     .reset_index(name="early_count"))
-    late_counts = (late.groupby("police_station").size()
+    late_counts = (late.groupby("police_station", observed=True).size()
                    .reset_index(name="late_count"))
 
-    growth = early_counts.merge(late_counts, on="police_station", how="outer").fillna(0)
+    growth = early_counts.merge(late_counts, on="police_station", how="outer")
+    growth[["early_count", "late_count"]] = growth[["early_count", "late_count"]].fillna(0)
     growth["early_count"] = growth["early_count"].astype(int)
     growth["late_count"] = growth["late_count"].astype(int)
     growth["change"] = growth["late_count"] - growth["early_count"]

@@ -186,7 +186,7 @@ def _render_parking_dna():
         ui.kpi(k[0], "Stations profiled", f"{len(dna)}")
         ui.kpi(k[1], "Total violations", f"{dna['total_violations'].sum():,}")
         ui.kpi(k[2], "Top station", dna.iloc[0]["police_station"][:20])
-        ui.kpi(k[3], "Most common vehicle", dna["dominant_vehicle"].mode().iat[0] if len(dna) else "—")
+        ui.kpi(k[3], "Most common vehicle", core._first_mode(dna["dominant_vehicle"], "Unknown") if len(dna) else "Unknown")
         avg_weekend = dna["weekend_ratio"].mean()
         ui.kpi(k[4], "Avg weekend ratio", f"{avg_weekend:.1f}%")
 
@@ -557,3 +557,4 @@ with tab2:
     _render_parking_dna()
 with tab3:
     _render_traffic_propagation()
+

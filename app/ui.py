@@ -88,7 +88,7 @@ def page(title, icon="P"):
     st.markdown(_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- cached loaders
-@st.cache_data(show_spinner="Loading violations…", max_entries=1, ttl=3600)
+@st.cache_resource(show_spinner="Loading violations...", max_entries=1, ttl=3600)
 def load_data():
     return core.load_clean()
 
@@ -435,3 +435,4 @@ def brand_sidebar():
         "actionable enforcement recommendations."
     )
     st.sidebar.markdown("---")
+

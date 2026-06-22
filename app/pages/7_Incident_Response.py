@@ -647,7 +647,7 @@ def _render_knn_intelligence():
     ui.kpi(ik[1], "Results returned", f"{len(results)}")
     avg_dist = results_df["Distance"].mean()
     ui.kpi(ik[2], "Avg similarity distance", f"{avg_dist:.2f}")
-    top_zone = results_df["Zone"].mode().iat[0] if not results_df.empty else "—"
+    top_zone = core._first_mode(results_df["Zone"], "Unknown") if not results_df.empty else "Unknown"
     ui.kpi(ik[3], "Most common zone", str(top_zone)[:18])
 
     st.markdown("---")

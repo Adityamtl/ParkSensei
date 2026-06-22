@@ -44,7 +44,7 @@ st.markdown("")
 junction_pct = int(zones["junction_frac"].mean() * 100) if "junction_frac" in zones.columns else 0
 peak_pct = int(zones["peak_share"].mean() * 100) if "peak_share" in zones.columns else 0
 critical_zones = len(zones[zones["impact_score"] >= 70])
-top_violation = df["primary_type"].mode().iat[0] if len(df) else "unknown"
+top_violation = core._first_mode(df["primary_type"], "unknown") if len(df) else "unknown"
 
 st.info(
     f"**Summary** — ParkSensei's 7-factor Congestion Impact Score identifies "
@@ -55,19 +55,23 @@ st.info(
     f"Average vehicle obstruction weight is **{avg_pcu:.2f} PCU**."
 )
 
-# ---------------- PDF download ----------------
-bt = ui.get_backtest()
-pdf_bytes = ui.generate_pdf_brief(zones, backtest_result=bt)
-if pdf_bytes:
-    col_dl1, col_dl2, _ = st.columns([1, 1, 4])
-    with col_dl1:
-        st.download_button("Download PDF Brief", pdf_bytes,
+# ---------------- downloads ----------------
+col_dl1, col_dl2, _ = st.columns([1, 1, 4])
+with col_dl1:
+    if st.button("Prepare PDF Brief"):
+        bt = ui.get_backtest()
+        st.session_state["dashboard_pdf_bytes"] = ui.generate_pdf_brief(
+            zones, backtest_result=bt
+        )
+    if st.session_state.get("dashboard_pdf_bytes"):
+        st.download_button("Download PDF Brief",
+                           st.session_state["dashboard_pdf_bytes"],
                            file_name="parksensei_enforcement_brief.pdf",
                            mime="application/pdf")
-    with col_dl2:
-        csv_data = zones.head(30).to_csv(index=False).encode()
-        st.download_button("Download Top Zones (CSV)", csv_data,
-                           file_name="parksensei_top_zones.csv")
+with col_dl2:
+    csv_data = zones.head(30).to_csv(index=False).encode()
+    st.download_button("Download Top Zones (CSV)", csv_data,
+                       file_name="parksensei_top_zones.csv")
 
 # ---------------- city map ----------------
 left, right = st.columns([2, 1], gap="large")
@@ -160,11 +164,11 @@ with p1:
 
 with p2:
     try:
-        dna = ui.get_parking_dna()
-        n_stations = len(dna) if not dna.empty else 0
-        top_vehicle = dna.iloc[0]["dominant_vehicle"][:12] if not dna.empty else "—"
+        stations = df.loc[df["police_station"] != "nan", "police_station"]
+        n_stations = stations.nunique()
+        top_vehicle = str(core._first_mode(df["vehicle_type"], "-"))[:12] if len(df) else "-"
     except Exception:
-        n_stations, top_vehicle = 0, "—"
+        n_stations, top_vehicle = 0, "-"
     st.markdown("""
     <div class="rec-card">
         <strong>🧬 Parking DNA</strong>
@@ -177,20 +181,19 @@ with p2:
 
 with p3:
     try:
-        growth = ui.get_emerging_hotspots()
-        emerging_cnt = len(growth[growth["trend"].isin(["Rapidly Emerging", "Emerging"])]) if not growth.empty else 0
-        declining_cnt = len(growth[growth["trend"].isin(["Declining", "Rapidly Declining"])]) if not growth.empty else 0
+        tracked_stations = df.loc[df["police_station"] != "nan", "police_station"].nunique()
+        tracked_days = df["ymd"].nunique()
     except Exception:
-        emerging_cnt, declining_cnt = 0, 0
+        tracked_stations, tracked_days = 0, 0
     st.markdown("""
     <div class="rec-card">
         <strong>📈 Emerging Hotspots</strong>
         <br/><span style="color:#8A93A6;font-size:0.82rem">Growth trend detection</span>
         <hr style="margin:8px 0;border-color:#1E2638"/>
-        <div style="font-size:1.3rem;font-weight:700">{} emerging</div>
-        <span style="color:#10B981;font-size:0.8rem">{} declining</span>
+        <div style="font-size:1.3rem;font-weight:700">{} stations</div>
+        <span style="color:#10B981;font-size:0.8rem">{} days tracked</span>
     </div>
-    """.format(emerging_cnt, declining_cnt), unsafe_allow_html=True)
+    """.format(tracked_stations, tracked_days), unsafe_allow_html=True)
 
 with p4:
     sim_preview = core.what_if_simulation(zones, target_idx=0, additional_officers=5)
@@ -209,3 +212,4 @@ st.caption(
     "All modules: Hotspot Analytics · Patrol Planning · Enforcement Strategy · "
     "Intelligence Lab · Incident Response · Ask ParkSensei · Reports & Exports"
 )
+
