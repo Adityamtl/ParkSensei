@@ -19,4 +19,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           pip install huggingface_hub
-          huggingface-cli upload adityamtl/ParkSensei . . --repo-type space --token $HF_TOKEN
+          huggingface-cli upload adityamtl/ParkSensei . . --repo-type space --token $HF_TOKEN --exclude ".github/*" "test_hf_upload.py"
