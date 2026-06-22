@@ -1,3 +1,12 @@
+---
+title: ParkSensei
+emoji: 🚗
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+app_file: app.py
+pinned: false
+---
 # ParkSensei
 
 Live app: https://parksensei.streamlit.app/
