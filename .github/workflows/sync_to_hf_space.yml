@@ -17,4 +17,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://adityamtl:$HF_TOKEN@huggingface.co/spaces/adityamtl/ParkSensei main
+        run: git push -f https://adityamtl:$HF_TOKEN@huggingface.co/spaces/adityamtl/ParkSensei main
