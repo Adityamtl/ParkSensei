@@ -9,7 +9,7 @@ pinned: false
 ---
 # ParkSensei
 
-Live app: [https://parksensei.streamlit.app/](https://huggingface.co/spaces/adityamtl/ParkSensei)
+Live app: [https://huggingface.co/spaces/adityamtl/ParkSensei](https://huggingface.co/spaces/adityamtl/ParkSensei)
 
 Parking and incident intelligence for Bengaluru Traffic Police.
 
